@@ -40,8 +40,8 @@ void decouple(char * buffer){
     index_host = host - buffer + index_host;
     cut_string_index(buffer, url, index_get,index_http);
     cut_string_char(buffer, host_adress, index_host,'\n');
-    printf("Host: %s\n",url);
-    printf("Request: %s\n",host_adress);
+    printf("Request: %s\n",url);
+    printf("Host: %s\n",host_adress);
   }
 }
 
