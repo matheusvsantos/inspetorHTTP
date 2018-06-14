@@ -7,6 +7,7 @@
 #include<unistd.h>
 #include <string.h>
 #include <strings.h>
+#include <netdb.h>
 
 void cut_string_index(char * src, char * dest, int first_index, int second_index){
   int j = 0;
@@ -36,7 +37,7 @@ void decouple(char * buffer){
 
   if(get_index != NULL && http_index != NULL && host != NULL) {
     index_get = get_index - buffer + index_get;
-    index_http = http_index - buffer + index_http - index_get;
+    index_http = http_index - buffer + index_http;
     index_host = host - buffer + index_host;
     cut_string_index(buffer, url, index_get,index_http);
     cut_string_char(buffer, host_adress, index_host,'\n');
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
 
       recv(new_socket, buffer, bufsize, 0);
       decouple(buffer);
-      /*printf("%s\n", buffer);*/
+      printf("%s\n", buffer);
       write(new_socket, "HTTP/1.1 200 OK\n", 16);
       write(new_socket, "Content-length: 46\n", 19);
       write(new_socket, "Content-Type: text/html\n\n", 25);
