@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
       write(new_socket, "Content-length: 46\n", 19);
       write(new_socket, "Content-Type: text/html\n\n", 25);
       write(new_socket, "<html><body><H1>Hello world</H1></body></html>",46);
+      system("wget www.google.com.br");
       close(new_socket);
    }
    close(create_socket);
