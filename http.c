@@ -5,6 +5,45 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<unistd.h>
+#include <string.h>
+#include <strings.h>
+
+void cut_string_index(char * src, char * dest, int first_index, int second_index){
+  int j = 0;
+  for(int i = first_index ; i != second_index; i ++){
+    dest[j] = src[i];
+    j++;
+  }
+  dest[j] = '\0';
+}
+
+void cut_string_char(char * src, char * dest, int first_index, char second_index){
+  int j = 0;
+  for(int i = first_index ; src[i] != second_index; i ++){
+    dest[j] = src[i];
+    j++;
+  }
+  dest[j] = '\0';
+}
+
+void decouple(char * buffer){
+  int index_get = 3, index_http = -1, index_host = 5;
+  char host_adress[150], url[150];
+
+  char *get_index = strstr(buffer, "GET");
+  char *http_index = strstr(buffer, "HTTP/1.1");
+  char *host = strstr(buffer, "Host:");
+
+  if(get_index != NULL && http_index != NULL && host != NULL) {
+    index_get = get_index - buffer + index_get;
+    index_http = http_index - buffer + index_http - index_get;
+    index_host = host - buffer + index_host;
+    cut_string_index(buffer, url, index_get,index_http);
+    cut_string_char(buffer, host_adress, index_host,'\n');
+    printf("Host: %s\n",url);
+    printf("Request: %s\n",host_adress);
+  }
+}
 
 int main(int argc, char *argv[]) {
    int create_socket, new_socket;
@@ -57,7 +96,8 @@ int main(int argc, char *argv[]) {
       }
 
       recv(new_socket, buffer, bufsize, 0);
-      printf("%s\n", buffer);
+      decouple(buffer);
+      /*printf("%s\n", buffer);*/
       write(new_socket, "HTTP/1.1 200 OK\n", 16);
       write(new_socket, "Content-length: 46\n", 19);
       write(new_socket, "Content-Type: text/html\n\n", 25);
