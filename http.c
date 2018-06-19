@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
       recv(new_socket, buffer, bufsize, 0);
       printf("%s \n",buffer);
       decouple(buffer,&httpGet);
-      if(strstr(httpGet.file_path, ".png") == NULL && strstr(httpGet.file_path, ".jpg") == NULL) {
+      if(strstr(httpGet.file_path, ".png") == NULL && strstr(httpGet.file_path, ".jpg") == NULL && strstr(httpGet.file_path, ".gif") == NULL && strstr(httpGet.file_path, ".js") == NULL) {
         getHTTPFile(httpGet,new_socket);
       }
       close(new_socket);
