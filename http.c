@@ -8,12 +8,27 @@
 #include <string.h>
 #include <strings.h>
 #include <netdb.h>
+#include <strings.h>
+#include <string.h>
+#include <netinet/tcp.h>
+#include <sys/stat.h>
+#include <errno.h>
+
+struct http_request{
+  char host[350];
+  char url[350];
+  char file_path[200];
+};
+
+#define BUFFER_SIZE 1024
 
 void cut_string_index(char * src, char * dest, int first_index, int second_index){
   int j = 0;
   for(int i = first_index ; i != second_index; i ++){
-    dest[j] = src[i];
-    j++;
+    if(src[i] != ' ' && src[i] != '\r'){
+      dest[j] = src[i];
+      j++;
+    }
   }
   dest[j] = '\0';
 }
@@ -21,15 +36,73 @@ void cut_string_index(char * src, char * dest, int first_index, int second_index
 void cut_string_char(char * src, char * dest, int first_index, char second_index){
   int j = 0;
   for(int i = first_index ; src[i] != second_index; i ++){
-    dest[j] = src[i];
-    j++;
+    if(src[i] != ' ' && src[i] != '\r'){
+      dest[j] = src[i];
+      j++;
+    }
   }
   dest[j] = '\0';
 }
 
-void decouple(char * buffer){
+void getHTTPFile(struct http_request get, int new_socket){
+  struct hostent *hp;
+	struct sockaddr_in addr;
+  FILE * index;
+	int on = 1, sock;
+  int dir_result;
+  char url[200] = "", path[200] = "";
+  char buffer[BUFFER_SIZE];
+
+	if((hp = gethostbyname(get.host)) == NULL){
+		herror("gethostbyname");
+		exit(1);
+	}
+	bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+	addr.sin_port = htons(80);
+	addr.sin_family = AF_INET;
+	sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(int));
+
+	if(sock == -1){
+		perror("setsockopt");
+		exit(1);
+	}
+
+	if(connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1){
+		perror("connect");
+		exit(1);
+
+	}
+  strcat(url,"GET ");
+  strcat(url,get.url);
+  strcat(url," \r\n");
+  write(sock, url, strlen(url));
+	bzero(buffer, BUFFER_SIZE);
+  if((dir_result = mkdir(get.host,S_IRUSR | S_IWUSR | S_IXUSR)) != 0){
+    if(dir_result != 0 && errno != EEXIST){
+      printf("mkdir error: %s",strerror(errno));
+    }
+  }
+
+  strcat(path,get.host);
+  strcat(path,get.file_path);
+  index = fopen(path,"w");
+  send(new_socket, "HTTP/1.0 200 OK\r\n\r\n", strlen("HTTP/1.0 200 OK\r\n\r\n"), 0);
+	while(read(sock, buffer, BUFFER_SIZE - 1) != 0){
+    fprintf(index, "%s", buffer);
+    send(new_socket, buffer, strlen(buffer), 0);
+		bzero(buffer, BUFFER_SIZE);
+	}
+
+  shutdown(sock, SHUT_RDWR);
+	close(sock);
+  fclose(index);
+
+}
+
+void decouple(char * buffer, struct http_request * httpGet){
   int index_get = 3, index_http = -1, index_host = 5;
-  char host_adress[150], url[150];
+  char host_adress[150], url[150], url_preload[200] = "", file_path[200] = "";
 
   char *get_index = strstr(buffer, "GET");
   char *http_index = strstr(buffer, "HTTP/1.1");
@@ -41,9 +114,19 @@ void decouple(char * buffer){
     index_host = host - buffer + index_host;
     cut_string_index(buffer, url, index_get,index_http);
     cut_string_char(buffer, host_adress, index_host,'\n');
-    printf("Request: %s\n",url);
-    printf("Host: %s\n",host_adress);
+    strcpy(httpGet->host, host_adress);
+    strcpy(httpGet->url, url);
   }
+  strcpy(url_preload,"http://");
+  strcat(url_preload, host_adress);
+  strcat(url_preload, "/");
+  if(strcmp(url_preload,url)==0){
+    strcat(file_path,"/index.html");
+  }else{
+    cut_string_index(url,file_path,strlen(url_preload)-1,strlen(url));
+  }
+  strcpy(httpGet->file_path, file_path);
+  strcpy(file_path,"");
 }
 
 int main(int argc, char *argv[]) {
@@ -54,6 +137,7 @@ int main(int argc, char *argv[]) {
    struct sockaddr_in address;
    char c;
    int PORT = 8228;
+   struct http_request httpGet;
 
    if(argc < 2){
      printf("Porta a ser utilizada será a default.");
@@ -97,13 +181,11 @@ int main(int argc, char *argv[]) {
       }
 
       recv(new_socket, buffer, bufsize, 0);
-      decouple(buffer);
-      printf("%s\n", buffer);
-      write(new_socket, "HTTP/1.1 200 OK\n", 16);
-      write(new_socket, "Content-length: 46\n", 19);
-      write(new_socket, "Content-Type: text/html\n\n", 25);
-      write(new_socket, "<html><body><H1>Hello world</H1></body></html>",46);
-      system("wget www.google.com.br");
+      printf("%s \n",buffer);
+      decouple(buffer,&httpGet);
+      if(strstr(httpGet.file_path, ".png") == NULL && strstr(httpGet.file_path, ".jpg") == NULL) {
+        getHTTPFile(httpGet,new_socket);
+      }
       close(new_socket);
    }
    close(create_socket);
