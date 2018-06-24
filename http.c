@@ -75,9 +75,7 @@ void find_subdir(struct http_request get)
       n = dash_occurencies[0] + 1;
       m = dash_occurencies[1] - dash_occurencies[0] - 1;
       strncpy(p2, &p1[n], m);
-      printf("ahahahahhaahahahahah\n\n\n\n\n\n");
       strcat(subdir, get.host);
-      printf("huhuhuhuhuhuhuhu\n\n\n\n\n\n");
       strcat(subdir, "/");
       strcat(subdir, p2);
       strcat(buffer, "mkdir -p ");
