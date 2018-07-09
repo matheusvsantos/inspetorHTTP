@@ -149,22 +149,12 @@ activate(GtkApplication *app,
   /* Coloca o botao na celula (0, 0) da grid */
   gtk_grid_attach(GTK_GRID(gridleft), button, 0, 0, 1, 1);
 
-  /* Coloca a view na celula (0, 1) da grid */
-  gtk_grid_attach(GTK_GRID(gridleft), text_view, 0, 1, 1, 1);
-
-  /* Cria o botao de request e binda ele com a funçao na CALLBACK*/
   button = gtk_button_new_with_label("View Request");
-  g_signal_connect(button, "clicked", G_CALLBACK(view_request), NULL);
-
-  /* Coloca o botao na celula (0, 0) da grid */
-  gtk_grid_attach(GTK_GRID(gridleft), button, 0, 0, 1, 1);
-
-  /* Cria o botao de request e binda ele com a funçao na CALLBACK*/
-  button = gtk_button_new_with_label("View Response");
   g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
 
   /* Coloca o botao na celula (0, 0) da grid */
-  gtk_grid_attach(GTK_GRID(gridleft), button, 0, 0, 1, 1);
+  gtk_grid_attach(GTK_GRID(gridleft), button, 0, 1, 1, 1);
+
 
   /* Cria o botao de response e binda ele com a funçao na CALLBACK*/
   button = gtk_button_new_with_label("Response");
@@ -173,9 +163,12 @@ activate(GtkApplication *app,
   /* Coloca o botao na celula (0, 0) da grid */
   gtk_grid_attach(GTK_GRID(gridright), button, 0, 0, 1, 1);
 
-  /* Coloca a view na celula (0, 1) da grid */
-  gtk_grid_attach(GTK_GRID(gridright), text_view_aux, 0, 1, 1, 1);
+  /* Cria o botao de request e binda ele com a funçao na CALLBACK*/
+  button = gtk_button_new_with_label("View Response");
+  g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
 
+  /* Coloca o botao na celula (0, 0) da grid */
+  gtk_grid_attach(GTK_GRID(gridright), button, 0, 1, 1, 1);
 
   /* Cria o botao de spider e binda ele com a funçao na CALLBACK*/
   button = gtk_button_new_with_label("Spider");
