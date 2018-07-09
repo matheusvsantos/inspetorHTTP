@@ -23,10 +23,13 @@ activate(GtkApplication *app,
   GtkWidget *box;
   GtkWidget *gridleft, *gridright, *gridtop;
   GtkWidget *button;
-  GtkWidget *label;
+  GtkWidget *text_view;
   GtkWidget *hpaned;
   GtkWidget *frame1 = gtk_frame_new(NULL);
   GtkWidget *frame2 = gtk_frame_new(NULL);
+
+  GtkTextBuffer *buffer;
+  GtkTextIter *iter;
 
   /* create a new window, and set its title */
   window = gtk_application_window_new(app);
@@ -52,8 +55,13 @@ activate(GtkApplication *app,
   gridright = gtk_grid_new();
   gridtop = gtk_grid_new();
   headerbar = gtk_header_bar_new();
-  label = gtk_label_new("AHUEUHAHEUAAH\nUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUE\nAHUEUHAHEUAAHUEAHUEUHAHEUAAHUEA\nHUEUHAHEUAAHUEAHUEUHAHEUAAHUEA\nHUEUHAHEUAAHUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUE\nAHUEUHAHEUAAHUEAHUEUHAHEUAAHUEAHUEUHAHE\nUAAHUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUEAHUE\nUHAHEUAAHUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUEAHUEUHAH\nEUAAHUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUEAHUEUHA\nHEUAAHUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUEAHUEUH\nAHEUAAHUEAHUEUHAHEUAAHUEAHUEUHAHEUAAH\nUEAHUEUHAHEUAAHUEAHUEUHAHEUAAHUE");
+  buffer = gtk_text_buffer_new(NULL);
+  text_view = gtk_text_view_new_with_buffer(buffer);
   box = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text_view), GTK_WRAP_WORD);
+
+  gtk_text_buffer_insert(buffer,iter,"This is a buffer",-1);
 
   /* Pack the container in the window */
   gtk_container_add(GTK_CONTAINER(window), box);
@@ -73,7 +81,7 @@ activate(GtkApplication *app,
    * just 1 cell horizontally and vertically (ie no spanning)
    */
   gtk_grid_attach(GTK_GRID(gridleft), button, 0, 0, 1, 1);
-  gtk_grid_attach(GTK_GRID(gridleft), label, 0, 1, 1, 1);
+  gtk_grid_attach(GTK_GRID(gridleft), text_view, 0, 1, 1, 1);
 
   button = gtk_button_new_with_label("Response");
   g_signal_connect(button, "clicked", G_CALLBACK(print_hello), NULL);
