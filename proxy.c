@@ -13,7 +13,7 @@
 #include <netinet/tcp.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <fcntl.h>  
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #define TRUE 1
@@ -91,6 +91,28 @@ void find_subdir(struct http_request get)
   }
 }
 
+void sendCachedFile(char * filepath, int sendsocket){
+  char buffer[BUFSIZ];
+  FILE *arq;
+  arq = fopen(filepath, "r");
+  if(arq == NULL){
+			printf("Erro, nao foi possivel abrir o arquivo\n");
+  }else{
+    send(sendsocket, "HTTP/1.0 200 OK\r\n\r\n", strlen("HTTP/1.0 200 OK\r\n\r\n"), 0);
+    if (strstr(filepath,".png") != NULL) {
+      send(sendsocket, "Content-Type: image/png\r\n\r\n", strlen("Content-Type: image/png\r\n\r\n"), 0);
+    }
+
+    if (strstr(filepath,".jpg") != NULL) {
+      send(sendsocket, "Content-Type: image/jpg\r\n\r\n", strlen("Content-Type: image/jpg\r\n\r\n"), 0);
+    }
+    while(fread(&buffer, 1, BUFSIZ, arq) == BUFSIZ ){
+      send(sendsocket, buffer, BUFSIZ, 0);
+    }
+  }
+	fclose(arq);
+}
+
 void getHTTPFile(struct http_request get, int new_socket)
 {
   struct hostent *hp;
@@ -138,17 +160,16 @@ void getHTTPFile(struct http_request get, int new_socket)
     strcat(path, get.host);
     strcat(path, get.file_path);
     index = fopen(path, "w");
-    send(new_socket, "HTTP/1.0 200 OK\r\n\r\n", strlen("HTTP/1.0 200 OK\r\n\r\n"), 0);
-    while (read(sock, buffer, BUFFER_SIZE - 1) != 0)
-    {
+
+    while (read(sock, buffer, BUFFER_SIZE - 1) != 0){
       fputs(buffer,index);
-      send(new_socket, buffer, strlen(buffer), 0);
       bzero(buffer, BUFFER_SIZE);
     }
 
+    fclose(index);
+    sendCachedFile(get.complete_path, new_socket);
     shutdown(sock, SHUT_RDWR);
     close(sock);
-    fclose(index);
     printf("[Proxy] No cahced file! Downloaded and sent!");
   }
 }
@@ -198,21 +219,6 @@ int cached(char * filepath){
   }
 }
 
-void sendCachedFile(char * filepath, int sendsocket){
-  char buffer[BUFSIZ];
-  FILE *arq;
-  arq = fopen(filepath, "r");
-  if(arq == NULL){
-			printf("Erro, nao foi possivel abrir o arquivo\n");
-  }else{
-    send(sendsocket, "HTTP/1.0 200 OK\r\n\r\n", strlen("HTTP/1.0 200 OK\r\n\r\n"), 0);
-    while(fread(&buffer, 1, BUFSIZ, arq) == BUFSIZ ){
-      send(sendsocket, buffer, BUFSIZ, 0);
-    }
-  }
-	fclose(arq);
-  printf("[Proxy] Cached File! Just sent to the brower!");
-}
 
 int main(int argc, char *argv[])
 {
@@ -287,14 +293,15 @@ int main(int argc, char *argv[])
     printf("[Proxy] GET %s \n\n", httpGet.complete_path);
     if(strcmp(httpGet.host,"g.symcd.com") != 0 && strcmp("sr.symcd.com",httpGet.host) != 0 && strcmp("ocsp.digicert.com",httpGet.host) != 0 ){
       if(cached(httpGet.complete_path)){
-      sendCachedFile(httpGet.complete_path, new_socket);
+        sendCachedFile(httpGet.complete_path, new_socket);
+        printf("[Proxy] Cached File! Just sent to the brower!");
       }else{
         getHTTPFile(httpGet, new_socket);
       }
     }else{
       printf("[Proxy] Notifiations not allowed");
     }
-    
+
     close(new_socket);
     printf("\n\n_____________________________________\n\n");
   }
