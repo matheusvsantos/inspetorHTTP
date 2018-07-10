@@ -18,7 +18,7 @@ void cut_string_char(char *src, char *dest, int first_index, char second_index)
 }
 
 
-int main(void) {
+void createSpider(){
   FILE *fp, *ftree;
   int i = 0;
   char *line = NULL, buffer[200];
@@ -59,9 +59,7 @@ int main(void) {
       }
     }
   }
-
   free(line);
   fclose(ftree);
   fclose(fp);
-  exit(EXIT_SUCCESS);
 }

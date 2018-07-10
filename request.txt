@@ -1,0 +1,10 @@
+GET http://init.ess.apple.com/WebObjects/VCInit.woa/wa/getBag?ix=4 HTTP/1.1
+Host: init.ess.apple.com
+Proxy-Connection: keep-alive
+Accept: */*
+User-Agent: server-bag [Mac OS X,10.13.4,17E199,MacBookPro11,1]
+Accept-Language: en-us
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+
+
